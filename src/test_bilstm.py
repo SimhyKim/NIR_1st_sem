@@ -1,18 +1,16 @@
-# -*- coding: utf-8 -*-
 import os
 import torch
 import torch.nn as nn
 import numpy as np
 import pickle
 
-# --- Model hyperparameters (MUST match training) ---
 EMBEDDING_DIM = 100
 HIDDEN_DIM = 128
 LSTM_LAYERS = 2
 DROPOUT = 0.3
 MAX_SEQ_LEN = 500
 
-# --- 1. Re-define BiLSTMClassifier ---
+#1. Re-define BiLSTMClassifier
 class BiLSTMClassifier(nn.Module):
     def __init__(self, embedding_matrix, hidden_dim, lstm_layers, dropout):
         super().__init__()
@@ -33,7 +31,7 @@ class BiLSTMClassifier(nn.Module):
         final_feature_map, _ = torch.max(lstm_out, dim=1)
         return self.fc(final_feature_map)
 
-# --- 2. Load saved artifacts ---
+# 2. Load saved
 model_path = "/Users/zubarevich.k/Downloads/model/bilstm_vulnerability_model.pth"
 vocab_path = "/Users/zubarevich.k/Downloads/model/vocab.pkl"
 emb_path = "/Users/zubarevich.k/Downloads/model/embedding_matrix.npy"
@@ -47,14 +45,8 @@ model = BiLSTMClassifier(embedding_matrix, HIDDEN_DIM, LSTM_LAYERS, DROPOUT).to(
 model.load_state_dict(torch.load(model_path, map_location=device))
 model.eval()
 
-# --- 3. Set up Tree-sitter parser (same as in training) ---
-# Ensure parser is available — reusing your setup
+#3. Set up Tree-sitter parser
 os.makedirs("parsers", exist_ok=True)
-
-# If you haven't already built the .so file, uncomment and run once:
-# from tree_sitter import Language
-# Language.build_library('parsers/my-languages.so', ['parsers/tree-sitter-cpp'])
-
 from tree_sitter_languages import get_language
 from tree_sitter import Parser
 
@@ -62,7 +54,7 @@ cpp_lang = get_language('cpp')
 parser = Parser()
 parser.set_language(cpp_lang)
 
-# --- 4. AST sequence extractor (identical to training) ---
+#4. AST sequence extractor
 def extract_ast_sequence(code: str):
     try:
         tree = parser.parse(bytes(code, "utf8"))
@@ -78,7 +70,7 @@ def extract_ast_sequence(code: str):
         stack.extend(reversed(node.children))
     return seq
 
-# --- 5. Vectorizer (same as training) ---
+#5. Vectorizer 
 PAD_TOKEN = "<PAD>"
 UNK_TOKEN = "<UNK>"
 
@@ -90,12 +82,12 @@ def vectorize_sequence(seq, vocab, max_len):
         vectorized = vectorized[:max_len]
     return vectorized
 
-# --- 6. Input C++ code ---
+#6. Input C++ code 
 code = """
 static int cirrus_bitblt_videotovideo_patterncopy(CirrusVGAState * s)\n{\n return cirrus_bitblt_common_patterncopy(s,\n\t\t\t\t\t s->vram_ptr +\n (s->cirrus_blt_srcaddr & ~7));\n}
 """
 
-# --- 7. Preprocess and predict ---
+#7. Preprocess and predict 
 ast_seq = extract_ast_sequence(code)
 if not ast_seq:
     raise ValueError("Failed to parse code into AST sequence.")
@@ -103,13 +95,13 @@ if not ast_seq:
 input_vec = vectorize_sequence(ast_seq, vocab, MAX_SEQ_LEN)
 input_tensor = torch.tensor([input_vec], dtype=torch.long).to(device)  # Add batch dim
 
-# Inference
+
 with torch.no_grad():
     logits = model(input_tensor).squeeze()
     prob = torch.sigmoid(logits).item()
     pred = int(prob > 0.15)
 
-# --- 8. Output result ---
+
 print(f"Code snippet:\n{code}\n")
 print(f"Prediction: {'Non-vulnerable' if pred == 1 else 'Vulnerable'}")
 print(f"Probability: {prob:.4f}")
