@@ -257,12 +257,12 @@ print(f"F1 Score:  {f1:.4f}")
 
 import pickle
 
-torch.save(model.state_dict(), "/Users/zubarevich.k/Downloads/model/bilstm_vulnerability_model.pth")
+torch.save(model.state_dict(), "/model_bilstm/bilstm_vulnerability_model.pth")
 
 # 2. Save vocab and embedding_matrix for fiuture
-with open("/Users/zubarevich.k/Downloads/model/vocab.pkl", "wb") as f:
+with open("/model_bilstm/vocab.pkl", "wb") as f:
     pickle.dump(vocab, f)
 
-np.save("/Users/zubarevich.k/Downloads/model/embedding_matrix.npy", embedding_matrix)
+np.save("/model_bilstm/embedding_matrix.npy", embedding_matrix)
 
 print("Model, vocab, and embedding matrix saved successfully.")
