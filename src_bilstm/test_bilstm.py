@@ -32,9 +32,9 @@ class BiLSTMClassifier(nn.Module):
         return self.fc(final_feature_map)
 
 # 2. Load saved
-model_path = "/Users/zubarevich.k/Downloads/model/bilstm_vulnerability_model.pth"
-vocab_path = "/Users/zubarevich.k/Downloads/model/vocab.pkl"
-emb_path = "/Users/zubarevich.k/Downloads/model/embedding_matrix.npy"
+model_path = "/model_bilstm/bilstm_vulnerability_model.pth"
+vocab_path = "/model_bilstm/vocab.pkl"
+emb_path = "/model_bilstm/embedding_matrix.npy"
 
 with open(vocab_path, "rb") as f:
     vocab = pickle.load(f)
